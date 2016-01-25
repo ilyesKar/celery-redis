@@ -28,12 +28,12 @@ class FileChangeHandler(FileSystemEventHandler):
     def on_created(self, event):
         if event.src_path[-5:] == ".json":
             self.logger.debug("created = " + str(event.src_path))
-            add_key_to_redis.delay('creation', event.src_path)
+            add_key_to_redis.delay('creation',open(event.src_path).read())
 
     def on_deleted(self, event):
         if event.src_path[-5:] == ".json":
             self.logger.debug("deleted = " + str(event.src_path))
-            delete_key_from_redis.delay(event.src_path)
+            delete_key_from_redis.delay(open(event.src_path).read())
 
 
 def do_launch_main_program(logger):
