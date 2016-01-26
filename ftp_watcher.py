@@ -1,4 +1,5 @@
 import logging
+import os
 from ftplib import FTP
 from time import sleep
 from daemon import DaemonContext
@@ -20,6 +21,12 @@ def changemon(dir_to_watch):
 
         add, rem = ls - ls_prev, ls_prev - ls
         if add or rem: yield add, rem
+
+        for file_path in add:
+            if str(file_path)[-4:] == ".out":
+                basename = os.path.basename(file_path)
+                file = open("/home/ilyes/schedelor/files/" + basename, 'wb')
+                ftp.retrbinary('RETR %s' % file_path, file.write)
 
         ls_prev = ls
         ftp.close()
