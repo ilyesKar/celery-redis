@@ -1,5 +1,7 @@
+import logging
 from ftplib import FTP
 from time import sleep
+from daemon import DaemonContext
 
 
 def ftp_connect():
@@ -23,6 +25,10 @@ def changemon(dir_to_watch):
         ftp.close()
         sleep(5)
 
-
-for add, rem in changemon("/req"):
-    print('\n'.join('+ %s' % i for i in add))
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+fh = logging.FileHandler("./ftp_watcher.log")
+logger.addHandler(fh)
+with DaemonContext(files_preserve=[fh.stream, ], ):
+    for add, rem in changemon("/req"):
+        logger.debug('\n'.join('+ %s' % i for i in add))
