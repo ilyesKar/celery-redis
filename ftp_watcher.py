@@ -1,0 +1,28 @@
+from ftplib import FTP
+from time import sleep
+
+
+def ftp_connect():
+    ftp = FTP("192.168.0.103")
+    ftp.login("Ilyes", "password209#")
+    return ftp
+
+
+def changemon(dir_to_watch):
+    ls_prev = set()
+
+    while True:
+        ftp = ftp_connect()
+        ftp.cwd(dir_to_watch)
+        ls = set(ftp.nlst(dir_to_watch))
+
+        add, rem = ls - ls_prev, ls_prev - ls
+        if add or rem: yield add, rem
+
+        ls_prev = ls
+        ftp.close()
+        sleep(5)
+
+
+for add, rem in changemon("/req"):
+    print('\n'.join('+ %s' % i for i in add))
