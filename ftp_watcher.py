@@ -27,6 +27,7 @@ def changemon(dir_to_watch):
                 basename = os.path.basename(file_path)
                 file = open("/home/ilyes/schedelor/files/" + basename, 'wb')
                 ftp.retrbinary('RETR %s' % file_path, file.write)
+                file.close()
 
         ls_prev = ls
         ftp.close()
