@@ -6,8 +6,8 @@ from daemon import DaemonContext
 from watchdog_functions import register_pid
 
 def ftp_connect():
-    ftp = FTP("192.168.0.103")
-    ftp.login("Ilyes", "password210#")
+    ftp = FTP("192.168.15.20")
+    ftp.login("griduser", "Password1")
     return ftp
 
 
@@ -32,12 +32,12 @@ def changemon(dir_to_watch):
 
         ls_prev = ls
         ftp.close()
-        sleep(5)
+        sleep(300)
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 fh = logging.FileHandler("./ftp_watcher.log")
 logger.addHandler(fh)
 with DaemonContext(files_preserve=[fh.stream, ], ):
-    for add, rem in changemon("/req"):
+    for add, rem in changemon("/OutPut"):
         logger.debug('\n'.join('+ %s' % i for i in add))
