@@ -3,17 +3,18 @@ import os
 from ftplib import FTP
 from time import sleep
 from daemon import DaemonContext
-
+from watchdog_functions import register_pid
 
 def ftp_connect():
     ftp = FTP("192.168.0.103")
-    ftp.login("Ilyes", "password209#")
+    ftp.login("Ilyes", "password210#")
     return ftp
 
 
 def changemon(dir_to_watch):
     ls_prev = set()
-
+    process_name = "ftp_watcher"
+    register_pid(process_name)
     while True:
         ftp = ftp_connect()
         ftp.cwd(dir_to_watch)
@@ -25,7 +26,7 @@ def changemon(dir_to_watch):
         for file_path in add:
             if str(file_path)[-4:] == ".out":
                 basename = os.path.basename(file_path)
-                file = open("/home/ilyes/schedelor/files/" + basename, 'wb')
+                file = open("/home/ilyes/celery-redis/files/" + basename, 'wb')
                 ftp.retrbinary('RETR %s' % file_path, file.write)
                 file.close()
 

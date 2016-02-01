@@ -1,15 +1,12 @@
 import logging
 import sys
 import time
-
-import redis
 from daemon import DaemonContext
-# from rq import Queue
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 from celery import *
 from watchdog_functions import *
-# from watchdog_functions import *
+
 
 BASE_KEY = 'watchdog:json:'
 
@@ -17,6 +14,8 @@ BASE_KEY = 'watchdog:json:'
 class FileChangeHandler(FileSystemEventHandler):
     def __init__(self, logger):
         self.logger = logger
+        process_name = "fix_watchdog"
+        register_pid(process_name)
         # self.q = Queue(connection=redis.Redis())
 
     def on_modified(self, event):

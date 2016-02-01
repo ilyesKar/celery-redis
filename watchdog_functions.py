@@ -1,4 +1,5 @@
 import redis
+import os
 from celery import *
 
 BASE_KEY = 'ilyes:json:'
@@ -29,4 +30,7 @@ def delete_key_from_redis(file_name):
     r.delete(BASE_KEY + file_name)
 
 
-
+def register_pid(process_name):
+    file = open("/var/run/"+process_name+".pid", 'w')
+    file.write(str(os.getpid()))
+    file.close()

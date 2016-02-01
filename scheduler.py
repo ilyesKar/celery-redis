@@ -1,44 +1,48 @@
 import ftplib
-import logging
-import os
-
-import redis, threading
 import json
-from daemon import *
+import logging
+from watchdog_functions import register_pid
+import redis
+import threading
+
+from daemon import DaemonContext
 
 BASE_KEY = '__key*__:*'
-def ftp_test(filename):
 
+
+def ftp_test(filename):
     filename = "MyFile.py"
     ftp = ftplib.FTP("192.168.0.103")
-    ftp.login("Ilyes", "password209#")
+    ftp.login("Ilyes", "password210#")
     ftp.cwd("/req")
     # os.chdir(r"/home/ilyes/schedelor/")
-    ftp.storlines("STOR " + "ilyes.req", open("/home/ilyes/schedelor/bond_test_res.req", 'rb'))
+    ftp.storlines("STOR " + "ilyes.req", open("/home/ilyes/celery-redis/bond_test_res.req", 'rb'))
+
 
 def create_req(isin_set, logger):
     logger.debug("create start")
     try:
-        bond_req = open("/home/ilyes/schedelor/bond_test.req", "r")
+        bond_req = open("/home/ilyes/celery-redis/bond_test.req", "r")
     except:
         logger.debug("create error 1")
     try:
-        bond_req_res = open("/home/ilyes/schedelor/bond_test_res.req", "w")
+        bond_req_res = open("/home/ilyes/celery-redis/bond_test_res.req", "w")
 
     except:
         logger.debug("create error 2")
     find = False
     i = 0
 
-    for  line in bond_req.read().split('\n'):
+    for line in bond_req.read().split('\n'):
         bond_req_res.writelines(line + "\n")
         if line == "START-OF-DATA":
-            for data in  isin_set:
-                bond_req_res.writelines(data+" Corp\n")
+            for data in isin_set:
+                bond_req_res.writelines(data + " Corp\n")
     bond_req_res.close()
     bond_req.close()
     ftp_test('eee')
     logger.debug("create end")
+
 
 class Listener(threading.Thread):
     def __init__(self, r, channels, logger):
@@ -46,10 +50,12 @@ class Listener(threading.Thread):
         self.redis = r
         self.pubsub = self.redis.pubsub()
         self.pubsub.psubscribe(channels)
+        process_name = "scheduler"
+        register_pid(process_name)
         self.logger = logger
 
     def work(self, item):
-        if item['channel'] == b'__keyevent@0__:set' and item['data'].decode('utf-8')[:11]== 'ilyes:json:':
+        if item['channel'] == b'__keyevent@0__:set' and item['data'].decode('utf-8')[:11] == 'ilyes:json:':
             print(item['data'])
             # print(item)
             json_data = r.get(item['data']).decode("utf-8")
@@ -66,7 +72,9 @@ class Listener(threading.Thread):
 
     def run(self):
         for item in self.pubsub.listen():
-                self.work(item)
+            self.work(item)
+
+
 
 
 
@@ -76,6 +84,7 @@ if __name__ == "__main__":
     fh = logging.FileHandler("./schedul.log")
     logger.addHandler(fh)
     # with DaemonContext(files_preserve=[fh.stream, ], ):
-    r = redis.Redis()
-    client = Listener(r, [BASE_KEY], logger)
-    client.start()
+    with DaemonContext(files_preserve=[fh.stream, ], ):
+        r = redis.Redis()
+        client = Listener(r, [BASE_KEY], logger)
+        client.start()
