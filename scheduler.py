@@ -1,38 +1,38 @@
+#!/usr/bin/python3
 import ftplib
 import json
 import logging
-from watchdog_functions import register_pid
-import redis
 import threading
 
 from daemon import DaemonContext
 
+from watchdog_functions import *
+
 BASE_KEY = '__key*__:*'
 
+__HOST__ = "192.168.0.103"
+__LOGIN__ = "Ilyes"
+__PSW__ = "password210#"
 
-def ftp_test(filename):
-    filename = "MyFile.py"
-    ftp = ftplib.FTP("192.168.0.103")
-    ftp.login("Ilyes", "password210#")
+
+def ftp_store(host, login, psw, filename):
+    ftp = ftplib.FTP(host)
+    ftp.login(login, psw)
     ftp.cwd("/req")
-    # os.chdir(r"/home/ilyes/schedelor/")
-    ftp.storlines("STOR " + "ilyes.req", open("/home/ilyes/celery-redis/bond_test_res.req", 'rb'))
+    ftp.storlines("STOR " + "ilyes.req", open(filename, 'rb'))
 
 
-def create_req(isin_set, logger):
+def create_req(output_file, isin_set, logger):
     logger.debug("create start")
     try:
-        bond_req = open("/home/ilyes/celery-redis/bond_test.req", "r")
+        bond_req = open("/opt/scheduler/templates/bond_test.req", "r")
     except:
-        logger.debug("create error 1")
+        logger.debug("input create error")
     try:
-        bond_req_res = open("/home/ilyes/celery-redis/bond_test_res.req", "w")
+        bond_req_res = open(output_file, "w")
 
     except:
-        logger.debug("create error 2")
-    find = False
-    i = 0
-
+        logger.debug("ouput create error")
     for line in bond_req.read().split('\n'):
         bond_req_res.writelines(line + "\n")
         if line == "START-OF-DATA":
@@ -40,7 +40,10 @@ def create_req(isin_set, logger):
                 bond_req_res.writelines(data + " Corp\n")
     bond_req_res.close()
     bond_req.close()
-    ftp_test('eee')
+    output_filename = os.path.basename(output_file)
+    encrypt_file  = "/opt/scheduler/encrypted_files/" + output_filename
+    file_encrypt(output_file,encrypt_file , DES_KEY)
+    ftp_store(__HOST__, __LOGIN__, __PSW__, encrypt_file)
     logger.debug("create end")
 
 
@@ -67,7 +70,7 @@ class Listener(threading.Thread):
                     for d in value:
                         if not isin_set.issuperset(d["Isin"]):
                             isin_set.add(d["Isin"])
-            create_req(isin_set, self.logger)
+            create_req("/opt/scheduler/req_files/request_test.req",isin_set, self.logger)
             return r.get(item['data'])
 
     def run(self):
@@ -75,13 +78,10 @@ class Listener(threading.Thread):
             self.work(item)
 
 
-
-
-
 if __name__ == "__main__":
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler("./schedul.log")
+    fh = logging.FileHandler("/var/log/scheduler/scheduler.log")
     logger.addHandler(fh)
     # with DaemonContext(files_preserve=[fh.stream, ], ):
     with DaemonContext(files_preserve=[fh.stream, ], ):

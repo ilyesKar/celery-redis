@@ -1,23 +1,24 @@
 ## monitor the  watchdog daemon
+
 check process fix_watchdog
 with pidfile /var/run/fix_watchdog.pid
 
-start program = "/etc/init.d/fix_watchdog start"
-stop program  = "/etc/init.d/fix_watchdog stop"
+start program = "/usr/sbin/service fix_watchdog start"
+stop program  = "/usr/sbin/service fix_watchdog stop"
 
 
 ## monitor the ftp watcher daemon
 check process ftp_watcher
 with pidfile /var/run/ftp_watcher.pid
 
-start program = "/etc/init.d/ftp_watcher start"
-stop program  = "/etc/init.d/ftp_watcher stop"
+start program = "/usr/sbin/service ftp_watcher start"
+stop program  = "/usr/sbin/service ftp_watcher stop"
 
 ## monitor the scheduler daemon
 check process scheduler
 with pidfile /var/run/scheduler.pid
 
-start program = "/etc/init.d/scheduler start"
-stop program  = "/etc/init.d/scheduler stop"
+start program = "/usr/sbin/service scheduler start"
+stop program  = "/usr/sbin/service scheduler stop"
 
-set alert ilyes.karoui@avicenne.com
+####set alert ilyes.karoui@avicenne.com

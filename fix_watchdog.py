@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import logging
 import sys
 import time
@@ -6,6 +7,7 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 from celery import *
 from watchdog_functions import *
+import traceback
 
 
 BASE_KEY = 'watchdog:json:'
@@ -52,10 +54,13 @@ def do_launch_main_program(logger):
 def run():
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler("./fix_watchdog.log")
+    fh = logging.FileHandler("/var/log/scheduler/fix_watchdog.log")
     logger.addHandler(fh)
     with DaemonContext(files_preserve=[fh.stream, ], ):
-        do_launch_main_program(logger)
+        try:
+            do_launch_main_program(logger)
+        except:
+            logger.debug(traceback.print_exc())
 
 
 if __name__ == "__main__":

@@ -1,0 +1,66 @@
+#!/bin/sh
+
+#sudo -s
+
+
+## project path
+cd ~
+cd celery-redis
+
+
+### add daemon in /etc/init.d
+TEMPLATE="/etc/init.d/skeleton"
+SCHEDULER="/etc/scheduler"
+FTP_WATCHER="/etc/init.d/ftp_watcher"
+FIX_WATCHDOG="/etc/init.d/fix_watchdog"
+
+cd /etc/init.d
+echo pwd
+echo $SCHEDULER
+if [ -f "$SCHEDULER" ]
+then
+	echo  "$SCHEDULER found."
+else
+	cp $TEMPLATE $SCHEDULER  
+	python3 register_process.py $SCHEDULER "ilyes"	
+	echo "$SCHEDULER not found."
+fi
+
+
+
+if [ -f "$FTP_WATCHER" ]
+then
+        echo "$FTP_WATCHER found."
+else
+	cp $TEMPLATE $FTP_WATCHER
+        echo "$FTP_WATCHER not found."
+fi
+
+
+if [ -f "$FIX_WATCHDOG" ]
+then
+        echo "$FIX_WATCHDOG found."
+else
+        cp $TEMPLATE $SCHEDULER	
+        echo "$FIX_WATCHDOG not found."
+fi
+
+
+
+##WATCH_PATH = "/home/ilyes/celery-redis/watch" ## change to the directory to watch
+
+
+
+
+## start  redis + celery worker
+###redis-server &
+###redis-cli config set notify-keyspace-events KEA &
+###celery worker -A fix_watchdog --app watchdog_functions:app -l info -c5 &
+
+
+## start the daemons
+
+#python3 fix_watchdog.py $WATCH_PATH &
+#python3 scheduler.py  &
+#python3 ftp_watcher.py &
+

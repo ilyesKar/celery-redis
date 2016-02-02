@@ -1,24 +1,11 @@
 #!/bin/sh
 
-# Make sure only root can run our script
-if [ "$(id -u)" != "0" ]; then
-   echo "This script must be run as root" 1>&2
-   exit 1
-fi
+#sudo -s
 
-mkdir -p /opt/scheduler
-mkdir -p /var/log/scheduler
-mkdir -p /opt/scheduler/encrypted_files/
-mkdir -p /opt/scheduler/req_files/
-cp -f  ./*.py /opt/scheduler 
-cp -rf ./templates/ /opt/scheduler/
-##copy init file
-cp -f ./init/* /etc/init.d/
 
 ## project path
-cd /opt/scheduler
-chmod +x *.py
-
+cd ~
+cd celery-redis
 
 
 ### add daemon in /etc/init.d
@@ -32,6 +19,9 @@ FTP_DAEMON="ftp_watcher"
 FIX_DAEMON="fix_watchdog"
 REGISTER_DAEMON="register_process.py"
 
+cd /etc/init.d
+echo pwd
+echo $SCHEDULER
 if [ -f "$SCHEDULER" ]
 then
 	echo  "$SCHEDULER exists."
@@ -51,7 +41,7 @@ fi
 
 if [ -f "$FIX_WATCHDOG" ]
 then
-        echo "$FIX_WATCHDOG exists."
+        echo "$FIX_WATCHDOG found."
 else
         $PYTHON $REGISTER_DAEMON $FIX_WATCHDOG $FIX_DAEMON
 fi
@@ -64,13 +54,13 @@ fi
 
 
 ##### start  redis + celery worker
-apt-get install --upgrade redis-server
-#redis-server &
-#redis-cli config set notify-keyspace-events KEA &
-#celery worker -A fix_watchdog --app watchdog_functions:app -l info -c5 &
+redis-server &
+redis-cli config set notify-keyspace-events KEA &
+celery worker -A fix_watchdog --app watchdog_functions:app -l info -c5 &
 
 
 ## start the daemons
+
 #python3 fix_watchdog.py $WATCH_PATH &
 #python3 scheduler.py  &
 #python3 ftp_watcher.py &

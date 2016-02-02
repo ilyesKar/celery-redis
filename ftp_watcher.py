@@ -1,5 +1,7 @@
+#!/usr/bin/python3
 import logging
 import os
+import traceback
 from ftplib import FTP
 from time import sleep
 from daemon import DaemonContext
@@ -11,11 +13,12 @@ def ftp_connect():
     return ftp
 
 
-def changemon(dir_to_watch):
+def changemon(dir_to_watch, logger):
     ls_prev = set()
     process_name = "ftp_watcher"
-    register_pid(process_name)
+    pid = register_pid(process_name)
     while True:
+        logger.debug("still alive  :"+str(pid))
         ftp = ftp_connect()
         ftp.cwd(dir_to_watch)
         ls = set(ftp.nlst(dir_to_watch))
@@ -32,12 +35,16 @@ def changemon(dir_to_watch):
 
         ls_prev = ls
         ftp.close()
-        sleep(300)
+        sleep(5)
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-fh = logging.FileHandler("./ftp_watcher.log")
+fh = logging.FileHandler("/var/log/scheduler/ftp_watcher.log")
 logger.addHandler(fh)
+logger.debug("aaa")
 with DaemonContext(files_preserve=[fh.stream, ], ):
-    for add, rem in changemon("/OutPut"):
-        logger.debug('\n'.join('+ %s' % i for i in add))
+    try:
+        for add, rem in changemon("/OutPut", logger):
+            logger.debug('\n'.join('+ %s' % i for i in add))
+    except:
+        logger.debug(traceback.print_exc())
