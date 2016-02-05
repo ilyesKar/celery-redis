@@ -1,11 +1,13 @@
 #!/usr/bin/python3
 import logging
-import os
 import traceback
 from ftplib import FTP
 from time import sleep
+
 from daemon import DaemonContext
-from watchdog_functions import register_pid
+
+from watchdog_functions import *
+
 
 def ftp_connect():
     ftp = FTP("192.168.15.20")
@@ -18,7 +20,7 @@ def changemon(dir_to_watch, logger):
     process_name = "ftp_watcher"
     pid = register_pid(process_name)
     while True:
-        logger.debug("still alive  :"+str(pid))
+        logger.debug("still alive  :" + str(pid))
         ftp = ftp_connect()
         ftp.cwd(dir_to_watch)
         ls = set(ftp.nlst(dir_to_watch))
@@ -29,13 +31,16 @@ def changemon(dir_to_watch, logger):
         for file_path in add:
             if str(file_path)[-4:] == ".out":
                 basename = os.path.basename(file_path)
-                file = open("/home/ilyes/celery-redis/files/" + basename, 'wb')
+                file_name = "/home/ilyes/celery-redis/files/" + basename  ### PATH TO BE CHANGED
+                file = open(file_name + ".d", 'wb')
                 ftp.retrbinary('RETR %s' % file_path, file.write)
                 file.close()
+                file_decrypt(file_name + ".d", file_name, DES_KEY)
 
         ls_prev = ls
         ftp.close()
         sleep(5)
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)

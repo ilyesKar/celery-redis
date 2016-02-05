@@ -1,34 +1,23 @@
 #!/usr/bin/python3
 import os
-
+import subprocess
 import redis
 from celery import *
-from pyDes import *
+
 DES_KEY = "-ySh}9/x"
-BASE_KEY = 'ilyes:json:'
+BASE_KEY = 'nca_scheduler:json:'
 
 
 def file_encrypt(input_file, output_file, encryption_key):
-    f = open(input_file, "rb+")
-    d = f.read()
-    f.close()
-    k = des(encryption_key)
-
-    d = k.encrypt(d, " ")
-    f = open(output_file, "wb+")
-    f.write(d)
-    f.close()
+    FNULL = open(os.devnull, 'w')  # use this if you want to suppress output to stdout from the subprocess
+    args = "opt/scheduler/tools/des-amd64 -E -u -k " + encryption_key + ' ' + input_file + output_file
+    subprocess.call(args, stdout=FNULL, stderr=FNULL, shell=True)
 
 
 def file_decrypt(input_file, output_file, encryption_key):
-    f = open(input_file, "rb+")
-    d = f.read()
-    f.close()
-    k = des(encryption_key)
-    d = k.decrypt(d, " ")
-    f = open(output_file, "wb+")
-    f.write(d)
-    f.close()
+    FNULL = open(os.devnull, 'w')  # use this if you want to suppress output to stdout from the subprocess
+    args = "opt/scheduler/tools/des-amd64 -D -u -k " + encryption_key + ' ' + input_file + output_file
+    subprocess.call(args, stdout=FNULL, stderr=FNULL, shell=True)
 
 
 app = Celery('watchdog_functions', broker='redis://localhost:6379/0')
@@ -40,7 +29,6 @@ def add_key_to_redis(file_name, file_content):
     r_server = redis.Redis()  # '192.168.0.154') #this line creates a new Redis object and
     r_server.set(BASE_KEY + file_name, file_content)
     r_server.publish(BASE_KEY + file_name, file_content)
-    # test = r.set(BASE_KEY + file_name, file_content)
     print(file_content)
 
 

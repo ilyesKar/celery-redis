@@ -2,13 +2,13 @@
 import logging
 import sys
 import time
+import traceback
+
 from daemon import DaemonContext
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-from celery import *
-from watchdog_functions import *
-import traceback
 
+from watchdog_functions import *
 
 BASE_KEY = 'watchdog:json:'
 
@@ -29,7 +29,7 @@ class FileChangeHandler(FileSystemEventHandler):
     def on_created(self, event):
         if event.src_path[-5:] == ".json":
             self.logger.debug("created = " + str(event.src_path))
-            add_key_to_redis.delay('creation',open(event.src_path).read())
+            add_key_to_redis.delay('creation', open(event.src_path).read())
 
     def on_deleted(self, event):
         if event.src_path[-5:] == ".json":

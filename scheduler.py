@@ -88,3 +88,4 @@ if __name__ == "__main__":
         r = redis.Redis()
         client = Listener(r, [BASE_KEY], logger)
         client.start()
+

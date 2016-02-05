@@ -10,14 +10,19 @@ mkdir -p /opt/scheduler
 mkdir -p /var/log/scheduler
 mkdir -p /opt/scheduler/encrypted_files/
 mkdir -p /opt/scheduler/req_files/
+mkdir -p /opt/scheduler/tools/
+
 cp -f  ./*.py /opt/scheduler 
 cp -rf ./templates/ /opt/scheduler/
+cp -f ./tools/* /opt/scheduler/tools
 ##copy init file
 cp -f ./init/* /etc/init.d/
 
 ## project path
 cd /opt/scheduler
 chmod +x *.py
+
+
 
 
 
